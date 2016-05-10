@@ -66,29 +66,29 @@
         };
       }])
 
-    .directive('treeGrid', [
-      '$timeout',
-      'treegridTemplate',
-      function ($timeout,
-                treegridTemplate) {
-
-        return {
-          restrict   : 'E',
-          templateUrl: function (tElement, tAttrs) {
-            return tAttrs.templateUrl || treegridTemplate.getPath();
-          },
-          replace    : true,
-          scope      : {
-            treeData        : '=',
-            colDefs         : '=',
-            expandOn        : '=',
-            onSelect        : '&',
-            onClick         : '&',
-            initialSelection: '@',
-            treeControl     : '='
-          },
-          link       : function (scope, element, attrs) {
-            var error, expandingProperty, expand_all_parents, expand_level, for_all_ancestors, for_each_branch, get_parent, n, on_treeData_change, select_branch, selected_branch, tree;
+        .directive('treeGrid', [
+            '$timeout',
+            'treegridTemplate',
+            function ($timeout,
+                      treegridTemplate) {
+            return {
+                restrict: 'E',
+                templateUrl: function () {
+                    return 'directives/tree/treegrid.tmpl.html';
+                },
+                replace: true,
+                scope: {
+                    treeData: '=',
+                    colDefs: '=',
+                    expandOn: '=',
+                    onSelect: '&',
+                    onClick: '&',
+                    initialSelection: '@',
+                    treeControl: '=',
+                    childArray: '@'
+                },
+                link: function (scope, element, attrs) {
+                    var error, expandingProperty, expand_all_parents, expand_level, for_all_ancestors, for_each_branch, get_parent, n, on_treeData_change, select_branch, selected_branch, tree;
 
             error = function (s) {
               console.log('ERROR:' + s);
@@ -109,25 +109,31 @@
               return;
             }
 
-            var getExpandingProperty = function getExpandingProperty() {
-              if (attrs.expandOn) {
-                expandingProperty = scope.expandOn;
-                scope.expandingProperty = scope.expandOn;
-              } else {
-                if (scope.treeData.length) {
-                  var _firstRow = scope.treeData[0],
-                    _keys = Object.keys(_firstRow);
-                  for (var i = 0, len = _keys.length; i < len; i++) {
-                    if (typeof (_firstRow[_keys[i]]) === 'string') {
-                      expandingProperty = _keys[i];
-                      break;
+                    var childrenField = 'children';
+                    if (angular.isDefined(scope.childArray)) {
+                        childrenField = scope.childArray;
                     }
-                  }
-                  if (!expandingProperty) expandingProperty = _keys[0];
-                  scope.expandingProperty = expandingProperty;
-                }
-              }
-            };
+
+                    var getExpandingProperty = function getExpandingProperty() {
+                        if (attrs.expandOn) {
+                            expandingProperty = scope.expandOn;
+                            scope.expandingProperty = scope.expandOn;
+                        } else {
+                            if (scope.treeData.length) {
+                                var _firstRow = scope.treeData[0], _keys = Object
+                                    .keys(_firstRow);
+                                for (var i = 0, len = _keys.length; i < len; i++) {
+                                    if (typeof (_firstRow[_keys[i]]) === 'string') {
+                                        expandingProperty = _keys[i];
+                                        break;
+                                    }
+                                }
+                                if (!expandingProperty)
+                                    expandingProperty = _keys[0];
+                                scope.expandingProperty = expandingProperty;
+                            }
+                        }
+                    };
 
             getExpandingProperty();
 
@@ -154,8 +160,8 @@
               do_f = function (branch, level) {
                 var child, _i, _len, _ref, _results;
                 f(branch, level);
-                if (branch.children != null) {
-                  _ref = branch.children;
+                if (branch[childrenField] != null) {
+                  _ref = branch[childrenField];
                   _results = [];
                   for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                     child = _ref[_i];
@@ -331,8 +337,8 @@
               scope.tree_rows = [];
               for_each_branch(function (branch) {
                 var child, f;
-                if (branch.children) {
-                  if (branch.children.length > 0) {
+                if (branch[childrenField]) {
+                  if (branch[childrenField].length > 0) {
                     f = function (e) {
                       if (typeof e === 'string') {
                         return {
@@ -343,9 +349,9 @@
                         return e;
                       }
                     };
-                    return branch.children = (function () {
+                    return branch[childrenField] = (function () {
                       var _i, _len, _ref, _results;
-                      _ref = branch.children;
+                      _ref = branch[childrenField];
                       _results = [];
                       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                         child = _ref[_i];
@@ -355,7 +361,7 @@
                     })();
                   }
                 } else {
-                  return branch.children = [];
+                  return branch[childrenField] = [];
                 }
               });
               add_branch_to_list = function (level, branch, visible) {
@@ -363,7 +369,7 @@
                 if (branch.expanded == null) {
                   branch.expanded = false;
                 }
-                if (!branch.children || branch.children.length === 0) {
+                if (!branch[childrenField] || branch[childrenField].length === 0) {
                   tree_icon = attrs.iconLeaf;
                 } else {
                   if (branch.expanded) {
@@ -380,8 +386,8 @@
                   tree_icon: tree_icon,
                   visible  : visible
                 });
-                if (branch.children != null) {
-                  _ref = branch.children;
+                if (branch[childrenField] != null) {
+                  _ref = branch[childrenField];
                   _results = [];
                   for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                     child = _ref[_i];
